@@ -1,8 +1,12 @@
-# Confere 2 — leitura automática de cartão SAS
+# Confere 2.1 — leitura automática de cartão SAS
+
+## Correção de 24/09
+
+A versão anterior dependia de contornos vermelhos e falhava em impressões em tons de cinza. Esta versão usa contraste local para identificar a grade e compensa variações de iluminação. Aceita tinta azul, recupera linhas com contornos parcialmente encobertos e não exige respostas preenchidas para localizar as questões. Branco continua sendo registrado como branco e vale zero acertos, sem interromper a leitura.
 
 ## O que mudou
 
-A fotografia é alinhada automaticamente pelos quadrados pretos nos quatro cantos. Os três marcadores superiores à esquerda indicam a orientação. O leitor localiza as linhas de cinco bolinhas vermelhas e analisa seu preenchimento. Não é necessário tocar em pontos da imagem.
+A fotografia é alinhada automaticamente pelos quadrados pretos nos quatro cantos. Os três marcadores superiores à esquerda indicam a orientação. O leitor localiza as linhas de cinco bolinhas impressas e analisa seu preenchimento. Não é necessário tocar em pontos da imagem.
 
 O aplicativo continua selecionando estudante, turma, idioma e dia antes da leitura, calculando acertos por área e total, guardando respostas no navegador e exportando PDF e backup. O nome, a matrícula e o QR code impressos não são reconhecidos nem usados para selecionar o estudante.
 
@@ -17,7 +21,7 @@ A lista `estudantes-9ano-IMPORTAR.json` continua separada: importe em Preparar s
 ## Testar agora com o exemplo recebido
 
 1. Selecione turma, estudante, idioma e dia.
-2. Use “Fotografar ou escolher imagem” com a imagem do cartão SAS fornecido, ou fotografe uma impressão colorida com preenchimentos a caneta preta.
+2. Use “Fotografar ou escolher imagem” com a imagem do cartão SAS fornecido, ou fotografe uma impressão colorida ou em preto e branco com preenchimentos escuros a caneta azul ou preta.
 3. Inclua a folha inteira e seus quatro cantos. Os três quadrados precisam ficar no alto à esquerda. Evite fundo preto, sombras fortes e papel curvado.
 4. A leitura começa automaticamente. Se a foto estiver de lado, use “Girar foto”.
 5. Confira as respostas detectadas. Azul indica as bolinhas localizadas; verde indica uma resposta selecionada. Respostas em branco, duplas ou incertas ficam destacadas.
@@ -26,19 +30,19 @@ A lista `estudantes-9ano-IMPORTAR.json` continua separada: importe em Preparar s
 
 ## Quando os cartões completos chegarem
 
-Em Preparar, selecione o dia e carregue uma imagem colorida do cartão completo, com as 90 respostas em branco. Faça isso uma vez para cada dia. O aplicativo extrai automaticamente as posições; não é preciso marcar cantos. Apenas as coordenadas são salvas, sem fotografia, nome, matrícula ou QR code.
+Em Preparar, selecione o dia e carregue uma imagem nítida do cartão completo, com as 90 respostas em branco. Faça isso uma vez para cada dia. O aplicativo extrai automaticamente as posições; não é preciso marcar cantos. Apenas as coordenadas são salvas, sem fotografia, nome, matrícula ou QR code.
 
 Na correção, fotografe cada cartão preenchido e revise antes de salvar. O leitor verifica a coincidência entre a grade e o modelo. Se não conseguir alinhar ou reconhecer a grade com segurança, pede outra foto em vez de preencher respostas inventadas.
 
-Também existe detecção direta de 90 linhas sem modelo cadastrado, quando todas as bordas vermelhas estão visíveis. Cadastrar a folha em branco é preferível, pois preenchimentos podem encobrir os círculos. O desenho completo ainda precisa ser validado quando fornecido: o cadastro não garante compatibilidade com qualquer organização de cartão.
+Também existe detecção direta de 90 linhas sem modelo cadastrado, quando todas as bordas das bolinhas estão visíveis. Cadastrar a folha em branco é preferível, pois preenchimentos podem encobrir os círculos. O desenho completo ainda precisa ser validado quando fornecido: o cadastro não garante compatibilidade com qualquer organização de cartão.
 
 ## Padrão suportado nesta versão
 
-- Folha colorida SAS com quatro marcadores de canto e três quadrados no alto à esquerda.
-- Alternativas A–E em círculos vermelhos e preenchimento a caneta preta.
+- Folha SAS colorida ou em preto e branco com quatro marcadores de canto e três quadrados no alto à esquerda.
+- Alternativas A–E em círculos e preenchimento escuro a caneta azul ou preta.
 - Blocos com linhas regularmente espaçadas; leitura de cima para baixo em cada bloco, da esquerda para a direita.
 - Grade de respostas na parte inferior da folha, conforme o exemplo. O algoritmo detecta os círculos, sem assumir seis colunas ou quinze questões por bloco.
-- Não suporta impressão em preto e branco, cantos cortados, orientação de cabeça para baixo sem girar, layout arbitrário, folha dobrada ou marcações com cores claras.
+- Não suporta cantos cortados, orientação de cabeça para baixo sem girar, layout arbitrário, folha dobrada ou marcações com cores claras.
 - Não é detecção contínua em vídeo: a câmera captura uma foto e a leitura ocorre automaticamente em seguida.
 
 ## Gabarito e relatórios
@@ -55,14 +59,14 @@ A câmera exige HTTPS e permissão; o seletor de imagem é a alternativa. JPG, P
 
 ## Testes realizados
 
-- 9 testes automatizados de contagem, idiomas, leitura, modelo de 90 posições e rejeição de marcadores ausentes/posições inválidas.
+- 12 testes automatizados de contagem, idiomas, leitura, modelo de 90 posições e rejeição de marcadores ausentes/posições inválidas.
 - Imagem original recebida: 40 linhas identificadas automaticamente, todas em branco.
 - Preenchimentos artificiais sobre a imagem recebida: 40/40 respostas esperadas, incluindo branco e dupla.
 - Mesma imagem preenchida com perspectiva, gradiente de sombra e leve desfoque simulados: 40/40 respostas esperadas.
 - Teste de cantos cortados: imagem rejeitada.
 - Grade de 90 questões criada apenas para teste do algoritmo: cadastro e leitura aprovados. **Essa grade sintética não é o cartão oficial de 90 questões.**
 
-Fotos reais de alunos, câmera física, interface em celular e o cartão oficial completo ainda não foram validados. Os testes sintéticos não equivalem a uma taxa de precisão medida em uso real. Faça um teste com respostas conhecidas antes de corrigir a turma; confira todas as respostas antes de salvar.
+A foto real visível na captura de tela de 24/09 foi recortada para retirar a interface e testada: 40/40 posições corresponderam à conferência visual, incluindo a questão 34 em branco. Câmera física, interface em celular e o cartão oficial de 90 questões ainda não foram validados. Os testes sintéticos não equivalem a uma taxa de precisão medida em uso real. Faça um teste com respostas conhecidas antes de corrigir a turma; confira todas as respostas antes de salvar.
 
 ## Código
 

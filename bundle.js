@@ -61,7 +61,7 @@ function makePdf(lines) {
  let s='%PDF-1.4\n',offsets=[0];objects.forEach((o,i)=>{offsets.push(enc(s).length);s+=`${i+1} 0 obj\n${o}\nendobj\n`;});const start=enc(s).length;s+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`+offsets.slice(1).map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+`trailer\n<< /Size ${objects.length+1} /Root 1 0 R >>\nstartxref\n${start}\n%%EOF`;return enc(s);
 }
 
-// Local OMR for red SAS cards. No network, OCR or student-identity recognition.
+// Local OMR for color and grayscale SAS cards. No network, OCR or student-identity recognition.
 function components(mask,w,h,minSize=8){
  const out=[],seen=new Uint8Array(w*h),queue=new Int32Array(w*h);
  for(let i=0;i<mask.length;i++){if(!mask[i]||seen[i])continue;let head=0,tail=1;queue[0]=i;seen[i]=1;let minX=w,minY=h,maxX=0,maxY=0,sx=0,sy=0;
@@ -90,13 +90,19 @@ function rectify(im){
  for(let y=0;y<height;y++)for(let x=0;x<width;x++){const a=map((x-53.5)/1195.5,(y-53.5)/1726.5),at=(y*width+x)*4,xx=Math.round(a.x),yy=Math.round(a.y);if(xx<0||yy<0||xx>=im.width||yy>=im.height){data[at]=data[at+1]=data[at+2]=data[at+3]=255;continue;}const src=(yy*im.width+xx)*4;data[at]=im.data[src];data[at+1]=im.data[src+1];data[at+2]=im.data[src+2];data[at+3]=255;}
  return {width,height,data,markers:p};
 }
+function inkMap(im){
+ const {width:w,height:h,data}=im,gray=new Float32Array(w*h),integral=new Float64Array((w+1)*(h+1));
+ for(let y=0;y<h;y++){let row=0;for(let x=0;x<w;x++){const i=y*w+x,j=i*4;gray[i]=.299*data[j]+.587*data[j+1]+.114*data[j+2];row+=gray[i];integral[(y+1)*(w+1)+x+1]=integral[y*(w+1)+x+1]+row;}}
+ const mask=new Uint8Array(w*h);for(let y=0;y<h;y++)for(let x=0;x<w;x++){const x0=Math.max(0,x-18),x1=Math.min(w,x+19),y0=Math.max(0,y-18),y1=Math.min(h,y+19);const mean=(integral[y1*(w+1)+x1]-integral[y0*(w+1)+x1]-integral[y1*(w+1)+x0]+integral[y0*(w+1)+x0])/((x1-x0)*(y1-y0));mask[y*w+x]=gray[y*w+x]<mean-13?1:0;}return mask;
+}
 function detectLayout(im){
- const {width:w,height:h,data}=im,mask=new Uint8Array(w*h);
- for(let y=Math.floor(h*.40);y<h*.96;y++)for(let x=0;x<w;x++){const i=y*w+x,j=i*4,r=data[j],g=data[j+1],b=data[j+2];mask[i]=r-g>45&&r-b>18&&r>100?1:0;}
- const rings=components(mask,w,h,22).filter(c=>c.w>=16&&c.w<=36&&c.h>=16&&c.h<=36&&c.w/c.h>.7&&c.w/c.h<1.4&&c.size/(c.w*c.h)<.85).map(c=>({...c,x:(c.minX+c.maxX)/2,y:(c.minY+c.maxY)/2}));
+ const {width:w,height:h}=im,mask=inkMap(im);mask.fill(0,0,Math.floor(h*.40)*w);mask.fill(0,Math.floor(h*.96)*w);
+ const rings=components(mask,w,h,22).filter(c=>c.w>=16&&c.w<=36&&c.h>=16&&c.h<=36&&c.w/c.h>.7&&c.w/c.h<1.4&&c.size/(c.w*c.h)<.99).map(c=>({...c,x:(c.minX+c.maxX)/2,y:(c.minY+c.maxY)/2}));
  const bands=[];for(const c of rings.sort((a,b)=>a.y-b.y)){let row=bands.find(b=>Math.abs(b.y-c.y)<5);if(!row){row={y:c.y,items:[]};bands.push(row);}row.items.push(c);}
  const rows=[];for(const band of bands){const cells=band.items.sort((a,b)=>a.x-b.x);for(let i=0;i<=cells.length-5;i++){const five=cells.slice(i,i+5),steps=five.slice(1).map((c,j)=>c.x-five[j].x),avg=steps.reduce((a,b)=>a+b)/4;if(avg<19||avg>49||steps.some(s=>Math.abs(s-avg)>3))continue;rows.push({x:five[0].x,y:five.reduce((s,c)=>s+c.y,0)/5,step:avg,radius:five.reduce((s,c)=>s+(c.w+c.h)/4,0)/5});i+=4;}}
  const columns=[];for(const row of rows){let col=columns.find(c=>Math.abs(c.x-row.x)<7);if(!col){col={x:row.x,rows:[]};columns.push(col);}col.rows.push(row);}
+ // Recover rows even when a filled bubble merges with its outline or a table border.
+ for(const col of columns){if(col.rows.length<8)continue;const step=col.rows.reduce((s,r)=>s+r.step,0)/col.rows.length;const recovered=[];for(const band of bands){const matches=[];for(let o=0;o<5;o++){const found=band.items.filter(c=>Math.abs(c.x-(col.x+o*step))<7).sort((a,b)=>b.w-a.w)[0];if(found)matches.push({...found,o});}if(matches.length>=3){const xs=matches.map(c=>c.x-c.o*step).sort((a,b)=>a-b);recovered.push({x:xs[Math.floor(xs.length/2)],y:matches.reduce((s,c)=>s+c.y,0)/matches.length,step,radius:matches.reduce((s,c)=>s+(c.w+c.h)/4,0)/matches.length});}}col.rows=recovered;}
  const result=[];for(const col of columns.sort((a,b)=>a.x-b.x)){if(col.rows.length<8)continue;col.rows.sort((a,b)=>a.y-b.y);const diffs=col.rows.slice(1).map((r,i)=>r.y-col.rows[i].y).sort((a,b)=>a-b),pitch=diffs[Math.floor(diffs.length/2)];if(pitch<20||pitch>55||diffs.some(d=>Math.abs(d-pitch)>4))throw Error('A grade não está completa ou nítida. Use uma foto melhor ou cadastre antes o cartão em branco de 90 questões.');result.push(...col.rows);}
  if(![40,90].includes(result.length))throw Error(`Identifiquei ${result.length} linhas de respostas. São necessárias 90 para corrigir, ou 40 para testar o modelo fornecido. Fotografe novamente ou cadastre o cartão em branco.`);
  return {version:1,width:w,height:h,rows:result,count:result.length};
@@ -104,11 +110,13 @@ function detectLayout(im){
 function validLayout(l){return !!l&&l.version===1&&l.width===1304&&l.height===1848&&l.count===90&&Array.isArray(l.rows)&&l.rows.length===90&&l.rows.every(r=>Number.isFinite(r.x)&&r.x>20&&r.x<1250&&Number.isFinite(r.y)&&r.y>700&&r.y<1800&&r.step>=19&&r.step<=49&&r.x+4*r.step<1304&&r.radius>=6&&r.radius<=18);}
 function readLayout(im,layout){
  const {data,width,height}=im;
- function red(x,y){const i=(Math.round(y)*width+Math.round(x))*4;return data[i]-data[i+1]>40&&data[i]-data[i+2]>15;}
+ // Drop out red form printing but preserve dark blue/black handwriting.
+ const light=at=>data[at]-data[at+1]>45&&data[at]-data[at+2]>18?Math.max(data[at],data[at+1],data[at+2]):.299*data[at]+.587*data[at+1]+.114*data[at+2];
+ const ink=inkMap(im);function printedInk(x,y){return ink[Math.round(y)*width+Math.round(x)]===1;}
  // Reject a saved template if printed rings no longer coincide with it.
- let checks=0,hits=0;for(const r of layout.rows)for(let o=0;o<5;o++)for(let t=0;t<12;t++){const angle=t*Math.PI/6;let found=false;for(let dr=-2;dr<=2;dr++){const x=r.x+o*r.step+Math.cos(angle)*(r.radius-1+dr),y=r.y+Math.sin(angle)*(r.radius-1+dr);if(x>=0&&y>=0&&x<width&&y<height&&red(x,y)){found=true;break;}}checks++;if(found)hits++;}
+ let checks=0,hits=0;for(const r of layout.rows)for(let o=0;o<5;o++)for(let t=0;t<12;t++){const angle=t*Math.PI/6;let found=false;for(let dr=-2;dr<=2;dr++){const x=r.x+o*r.step+Math.cos(angle)*(r.radius-1+dr),y=r.y+Math.sin(angle)*(r.radius-1+dr);if(x>=0&&y>=0&&x<width&&y<height&&printedInk(x,y)){found=true;break;}}checks++;if(found)hits++;}
  if(hits/checks<.45)throw Error('A grade desta foto não coincide com o modelo cadastrado, ou está desfocada. Refaça a foto; se o desenho mudou, cadastre o novo cartão em branco.');
- return layout.rows.map(r=>{const values=[];for(let o=0;o<5;o++){const cx=r.x+o*r.step,cy=r.y;let paper=[];for(let t=0;t<24;t++){const a=t*Math.PI/12,x=Math.round(cx+Math.cos(a)*r.radius*1.25),y=Math.round(cy+Math.sin(a)*r.radius*1.25);if(x>=0&&y>=0&&x<width&&y<height){const at=(y*width+x)*4;paper.push(Math.max(data[at],data[at+1],data[at+2]));}}paper.sort((a,b)=>a-b);const white=paper[Math.floor(paper.length*.8)]||255;let sum=0,n=0;const radius=r.radius*.57;for(let y=Math.floor(cy-radius);y<=cy+radius;y++)for(let x=Math.floor(cx-radius);x<=cx+radius;x++){if((x-cx)**2+(y-cy)**2>radius**2)continue;const at=(y*width+x)*4;sum+=Math.max(0,1-Math.max(data[at],data[at+1],data[at+2])/white);n++;}values.push(sum/n);}return {...classify(values),values};});
+ return layout.rows.map(r=>{const values=[];for(let o=0;o<5;o++){const cx=r.x+o*r.step,cy=r.y;let paper=[];for(let t=0;t<24;t++){const a=t*Math.PI/12,x=Math.round(cx+Math.cos(a)*r.radius*1.25),y=Math.round(cy+Math.sin(a)*r.radius*1.25);if(x>=0&&y>=0&&x<width&&y<height){const at=(y*width+x)*4;paper.push(light(at));}}paper.sort((a,b)=>a-b);const white=paper[Math.floor(paper.length*.8)]||255;let sum=0,n=0;const radius=r.radius*.57;for(let y=Math.floor(cy-radius);y<=cy+radius;y++)for(let x=Math.floor(cx-radius);x<=cx+radius;x++){if((x-cx)**2+(y-cy)**2>radius**2)continue;const at=(y*width+x)*4;sum+=Math.max(0,1-light(at)/white);n++;}values.push(sum/n);}const sorted=[...values].sort((a,b)=>b-a);const result=sorted[0]<.32&&sorted[0]-sorted[1]<.14?{answer:'',status:'Em branco'}:classify(values);return {...result,values};});
 }
 function automaticScan(im,template=null){const normalized=rectify(im),layout=template||detectLayout(normalized),answers=readLayout(normalized,layout);return {normalized,layout,answers};}
 
