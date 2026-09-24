@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import {automaticScan,validLayout} from '../auto.js';
+import {automaticScan,validLayout,OFFICIAL_LAYOUT} from '../auto.js';
 function form(marked=false){const width=1304,height=1848,data=new Uint8ClampedArray(width*height*4).fill(255);function pixel(x,y,r,g,b){const j=(y*width+x)*4;data[j]=r;data[j+1]=g;data[j+2]=b;}for(const [cx,cy] of [[53,53],[120,53],[186,53],[1249,53],[53,1780],[1249,1780]])for(let y=cy-17;y<=cy+17;y++)for(let x=cx-17;x<=cx+17;x++)pixel(x,y,0,0,0);for(let q=0;q<90;q++){const x=127+Math.floor(q/30)*360,y=840+(q%30)*28;for(let o=0;o<5;o++){const cx=x+o*31;for(let yy=y-11;yy<=y+11;yy++)for(let xx=cx-11;xx<=cx+11;xx++){const rr=Math.hypot(xx-cx,yy-y);if(rr>=9.5&&rr<=11)pixel(xx,yy,255,45,90);if(marked&&q>0&&(q===1?[0,3].includes(o):o===q%5)&&rr<8)pixel(xx,yy,10,10,10);}}}return {width,height,data};}
 test('grade anônima de 90: descoberta automática, cadastro e respostas',()=>{const blank=automaticScan(form());assert.equal(blank.layout.count,90);assert.ok(validLayout(blank.layout));assert.ok(blank.answers.every(a=>a.answer===''));const result=automaticScan(form(true),blank.layout);assert.deepEqual(result.answers.map(a=>a.answer),Array.from({length:90},(_,q)=>q===0?'':q===1?'X':'ABCDE'[q%5]));});
 test('não aprova imagem sem marcadores',()=>{const im=form();im.data.fill(255,0,im.width*130*4);assert.throws(()=>automaticScan(im),/quadrados/);});
@@ -8,3 +8,11 @@ function monochrome(marked=false){const im=form(marked);for(let i=0;i<im.data.le
 test('impressão cinza: 90 em branco não impedem descobrir a grade',()=>{const r=automaticScan(monochrome());assert.equal(r.layout.count,90);assert.ok(r.answers.every(a=>a.answer===''));});
 test('impressão cinza e caneta azul: branco, dupla e respostas',()=>{const r=automaticScan(monochrome(true));assert.deepEqual(r.answers.map(a=>a.answer),Array.from({length:90},(_,q)=>q===0?'':q===1?'X':'ABCDE'[q%5]));});
 test('uma bolinha ilegível não elimina a linha inteira da grade',()=>{const im=monochrome();const cx=127+2*31,cy=840+10*28;for(let y=cy-12;y<=cy+12;y++)for(let x=cx-12;x<=cx+12;x++){const i=(y*im.width+x)*4;im.data[i]=im.data[i+1]=im.data[i+2]=255;}const r=automaticScan(im);assert.equal(r.layout.count,90);assert.equal(r.answers[10].answer,'');});
+
+test('modelo oficial embutido: 24 + 24 + 24 + 18 e preenchimentos mistos',()=>{
+ assert.ok(validLayout(OFFICIAL_LAYOUT));const cols=[];for(const row of OFFICIAL_LAYOUT.rows){let c=cols.find(c=>Math.abs(c.x-row.x)<8);if(!c){c={x:row.x,n:0};cols.push(c);}c.n++;}assert.deepEqual(cols.map(c=>c.n),[24,24,24,18]);
+ const im=form();im.data.fill(255,700*im.width*4,1700*im.width*4);
+ const blank=new Set([0,23,24,47,48,71,72,89]);
+ OFFICIAL_LAYOUT.rows.forEach((r,q)=>{for(let o=0;o<5;o++){const cx=r.x+o*r.step,cy=r.y;for(let y=Math.floor(cy-r.radius);y<=cy+r.radius;y++)for(let x=Math.floor(cx-r.radius);x<=cx+r.radius;x++){const d=Math.hypot(x-cx,y-cy),j=(y*im.width+x)*4;if(d>r.radius-2&&d<=r.radius)im.data[j]=im.data[j+1]=im.data[j+2]=125;if(!blank.has(q)&&(q===10?[1,3].includes(o):o===q%5)&&d<r.radius*.7){im.data[j]=20;im.data[j+1]=25;im.data[j+2]=q%2?110:20;}}}});
+ const r=automaticScan(im);assert.equal(r.layout,OFFICIAL_LAYOUT);assert.deepEqual(r.answers.map(a=>a.answer),Array.from({length:90},(_,q)=>blank.has(q)?'':q===10?'X':'ABCDE'[q%5]));
+});

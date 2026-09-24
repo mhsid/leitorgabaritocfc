@@ -1,75 +1,65 @@
-# Confere 2.1 — leitura automática de cartão SAS
+# Confere 2.2 — cartão oficial de 90 questões
 
-## Correção de 24/09
+## Pronto para usar
 
-A versão anterior dependia de contornos vermelhos e falhava em impressões em tons de cinza. Esta versão usa contraste local para identificar a grade e compensa variações de iluminação. Aceita tinta azul, recupera linhas com contornos parcialmente encobertos e não exige respostas preenchidas para localizar as questões. Branco continua sendo registrado como branco e vale zero acertos, sem interromper a leitura.
+O desenho oficial enviado em 24/09 já está incorporado: quatro blocos com **24, 24, 24 e 18 questões**, lidos de cima para baixo, da esquerda para a direita. Não é necessário cadastrar novamente esse cartão nem marcar pontos na fotografia.
 
-## O que mudou
+O leitor aceita folha colorida ou impressa em preto e branco, com preenchimentos escuros a caneta azul ou preta. Questões sem preenchimento são identificadas como **Em branco** e não interrompem a leitura; na correção, valem zero acertos. Duplas e marcações incertas são destacadas para conferência.
 
-A fotografia é alinhada automaticamente pelos quadrados pretos nos quatro cantos. Os três marcadores superiores à esquerda indicam a orientação. O leitor localiza as linhas de cinco bolinhas impressas e analisa seu preenchimento. Não é necessário tocar em pontos da imagem.
+## Atualizar no GitHub Pages
 
-O aplicativo continua selecionando estudante, turma, idioma e dia antes da leitura, calculando acertos por área e total, guardando respostas no navegador e exportando PDF e backup. O nome, a matrícula e o QR code impressos não são reconhecidos nem usados para selecionar o estudante.
+1. Baixe uma cópia de segurança na aba Resultados do site atual.
+2. Extraia o ZIP e substitua os arquivos do repositório pelo conteúdo da pasta extraída, mantendo `index.html` na raiz. Inclua `auto.js` e o novo `bundle.js`.
+3. Aguarde a publicação do GitHub Pages e recarregue o site no celular. Confirme **v2.2** no cabeçalho.
+4. Mantenha o mesmo navegador e endereço para conservar os registros locais. Backups das versões anteriores são aceitos.
 
-## Publicar ou atualizar no GitHub
+Para a primeira publicação: Settings → Pages → Deploy from a branch → main → /(root). Abra a URL HTTPS fornecida pelo GitHub. Importe separadamente `estudantes-9ano-IMPORTAR.json` na aba Preparar, sem publicar esse arquivo no repositório.
 
-Extraia o ZIP e envie seu conteúdo para a raiz do repositório, substituindo os arquivos anteriores. Inclua `auto.js` e o novo `bundle.js`. No GitHub Pages, use Settings → Pages → Deploy from a branch → main → /(root). Abra a URL HTTPS no celular.
+O pacote não contém nomes da lista nem as fotos pessoais fornecidas. O modelo embutido guarda somente coordenadas de bolinhas.
 
-Se o site já está no ar, mantenha o mesmo endereço para preservar os dados locais. Baixe um backup antes de atualizar. As cópias da versão anterior são aceitas. Depois da publicação, recarregue a página; em Preparar deverá aparecer “Modelo automático · cartão SAS”.
+## Corrigir
 
-A lista `estudantes-9ano-IMPORTAR.json` continua separada: importe em Preparar se necessário, sem publicá-la no repositório. A captura de tela recebida contém nome e matrícula e não foi incluída no pacote público.
+1. Selecione turma, estudante, língua estrangeira e dia.
+2. Fotografe a folha inteira: quatro quadrados pretos nos cantos, com os três quadrados no alto à esquerda. Mantenha a folha plana, nítida e sem sombras fortes.
+3. A leitura inicia automaticamente após a captura. Use o seletor de imagem se preferir uma foto já tirada.
+4. Confira a sobreposição na foto e as respostas. Ajuste qualquer divergência, confirme a revisão e salve o cartão.
+5. Repita no outro dia. Baixe o relatório PDF e uma cópia de segurança em Resultados.
 
-## Testar agora com o exemplo recebido
+O desenho fornecido é do **1º dia**. Se o 2º dia usar a mesma disposição, o sistema interpreta suas 90 posições como questões 91–180. Se o desenho mudar, cadastre o cartão completo em branco desse dia em Preparar.
 
-1. Selecione turma, estudante, idioma e dia.
-2. Use “Fotografar ou escolher imagem” com a imagem do cartão SAS fornecido, ou fotografe uma impressão colorida ou em preto e branco com preenchimentos escuros a caneta azul ou preta.
-3. Inclua a folha inteira e seus quatro cantos. Os três quadrados precisam ficar no alto à esquerda. Evite fundo preto, sombras fortes e papel curvado.
-4. A leitura começa automaticamente. Se a foto estiver de lado, use “Girar foto”.
-5. Confira as respostas detectadas. Azul indica as bolinhas localizadas; verde indica uma resposta selecionada. Respostas em branco, duplas ou incertas ficam destacadas.
+Caso já tenha cadastrado um modelo diferente, ele continua tendo prioridade para não perder sua configuração. Para voltar ao padrão, selecione o dia em Preparar e clique em **Usar modelo oficial neste dia**. Isso não modifica os resultados salvos.
 
-**O exemplo tem 40 questões. Ele é lido como TESTE e não pode ser salvo nem pontuado como um cartão de 90.** Não foram inventadas as outras 50 posições. A prova impressa no exemplo é diferente do simulado de 180 questões cujas respostas foram enviadas anteriormente.
+O exemplo anterior de 40 questões permanece disponível para teste de leitura, sem possibilidade de salvá-lo como uma prova de 90.
 
-## Quando os cartões completos chegarem
+## Respostas corretas e estudantes
 
-Em Preparar, selecione o dia e carregue uma imagem nítida do cartão completo, com as 90 respostas em branco. Faça isso uma vez para cada dia. O aplicativo extrai automaticamente as posições; não é preciso marcar cantos. Apenas as coordenadas são salvas, sem fotografia, nome, matrícula ou QR code.
+A nova imagem define a disposição do cartão, não as respostas corretas. Foram preservados os gabaritos das duas fotos originais e a lista das turmas de 9º ano, independentemente da turma ou do nome impressos no exemplo.
 
-Na correção, fotografe cada cartão preenchido e revise antes de salvar. O leitor verifica a coincidência entre a grade e o modelo. Se não conseguir alinhar ou reconhecer a grade com segurança, pede outra foto em vez de preencher respostas inventadas.
+- Linguagens: 1–45, com inglês/espanhol nas questões 1–5.
+- Ciências Humanas: 46–90.
+- Ciências da Natureza: 91–135.
+- Matemática: 136–180.
 
-Também existe detecção direta de 90 linhas sem modelo cadastrado, quando todas as bordas das bolinhas estão visíveis. Cadastrar a folha em branco é preferível, pois preenchimentos podem encobrir os círculos. O desenho completo ainda precisa ser validado quando fornecido: o cadastro não garante compatibilidade com qualquer organização de cartão.
+Confira o gabarito na aba Preparar. O relatório contém quantidade de acertos, sem cálculo de TRI. Um cartão ausente fica pendente, nunca é convertido em zero. O nome, a matrícula e o QR code não são usados para selecionar estudante ou idioma: essas escolhas são feitas na tela.
 
-## Padrão suportado nesta versão
+## Dados
 
-- Folha SAS colorida ou em preto e branco com quatro marcadores de canto e três quadrados no alto à esquerda.
-- Alternativas A–E em círculos e preenchimento escuro a caneta azul ou preta.
-- Blocos com linhas regularmente espaçadas; leitura de cima para baixo em cada bloco, da esquerda para a direita.
-- Grade de respostas na parte inferior da folha, conforme o exemplo. O algoritmo detecta os círculos, sem assumir seis colunas ou quinze questões por bloco.
-- Não suporta cantos cortados, orientação de cabeça para baixo sem girar, layout arbitrário, folha dobrada ou marcações com cores claras.
-- Não é detecção contínua em vídeo: a câmera captura uma foto e a leitura ocorre automaticamente em seguida.
+Fotos são processadas em memória e descartadas ao salvar ou descartar a leitura. Respostas, estudantes e modelos personalizados ficam no armazenamento local deste navegador. Não há envio de dados ao servidor, sincronização entre aparelhos ou garantia de funcionamento offline após fechar a página.
 
-## Gabarito e relatórios
+Limpar os dados do navegador pode apagar os registros. Use a cópia JSON para restaurar ou transferir o trabalho; o PDF serve como relatório. A câmera requer HTTPS e permissão do usuário.
 
-As respostas corretas anteriores foram preservadas: Linguagens 1–45, Humanas 46–90, Natureza 91–135, Matemática 136–180. Inglês/espanhol altera 1–5 por estudante. A nova imagem é uma referência de cartão, não um novo gabarito de respostas.
+## Validação desta versão
 
-Confira as respostas oficiais em Preparar antes de usar na prova. Se o gabarito de respostas mudar, ele também deverá ser atualizado. Branco e dupla contam como erro; cartão ausente fica pendente. O PDF mostra acertos brutos, não TRI.
+- Cartão oficial original enviado: 90 posições localizadas e 90 respostas em branco.
+- Versão em tons de cinza do cartão oficial: 90/90 posições em branco reconhecidas.
+- Cartão oficial com preenchimentos artificiais pretos, brancos nas mudanças de bloco e uma dupla: 90/90 resultados esperados.
+- Cartão oficial em cinza com preenchimentos artificiais azuis, perspectiva, sombra e leve desfoque simulados: 90/90 resultados esperados.
+- Ordem dos blocos 24/24/24/18 e pontuação dos dois dias verificadas.
+- 13 testes automatizados passaram, incluindo leitura em cinza, caneta azul, branco, dupla, validação de modelo e contagem por área.
+- A foto real do cartão anterior, extraída da captura de tela de erro, continua passando: 40/40 posições conferidas, incluindo questão 34 em branco.
 
-## Armazenamento e câmera
+Ainda não há teste com fotografia física do cartão oficial de 90 questões preenchido, nem validação visual completa no celular. Testes com preenchimentos artificiais não medem a precisão em condições reais. Faça a primeira leitura com respostas conhecidas e confira todas as respostas antes de salvar. Desfoque, cantos cortados, papel curvado e preenchimento muito claro podem exigir nova captura.
 
-Fotos são processadas em memória e descartadas ao salvar ou sair da leitura. Estudantes, respostas e modelos geométricos ficam em `localStorage` neste navegador. Nada é enviado a um servidor. O backup JSON permite continuar em outro aparelho; o PDF é o relatório. Limpar dados do navegador pode apagar o trabalho. Não há sincronização nem instalação offline.
+## Manutenção
 
-A câmera exige HTTPS e permissão; o seletor de imagem é a alternativa. JPG, PNG e WebP funcionam conforme o navegador. O sistema não requer bibliotecas remotas.
-
-## Testes realizados
-
-- 12 testes automatizados de contagem, idiomas, leitura, modelo de 90 posições e rejeição de marcadores ausentes/posições inválidas.
-- Imagem original recebida: 40 linhas identificadas automaticamente, todas em branco.
-- Preenchimentos artificiais sobre a imagem recebida: 40/40 respostas esperadas, incluindo branco e dupla.
-- Mesma imagem preenchida com perspectiva, gradiente de sombra e leve desfoque simulados: 40/40 respostas esperadas.
-- Teste de cantos cortados: imagem rejeitada.
-- Grade de 90 questões criada apenas para teste do algoritmo: cadastro e leitura aprovados. **Essa grade sintética não é o cartão oficial de 90 questões.**
-
-A foto real visível na captura de tela de 24/09 foi recortada para retirar a interface e testada: 40/40 posições corresponderam à conferência visual, incluindo a questão 34 em branco. Câmera física, interface em celular e o cartão oficial de 90 questões ainda não foram validados. Os testes sintéticos não equivalem a uma taxa de precisão medida em uso real. Faça um teste com respostas conhecidas antes de corrigir a turma; confira todas as respostas antes de salvar.
-
-## Código
-
-`auto.js`: reconhecimento dos marcadores, correção de perspectiva, descoberta de grade e leitura automática. `core.js`: classificação, pontuação e PDF. `app.js`: interface. `bundle.js`: versão usada pelo navegador.
-
-Após alterar o código: `node build.mjs`. Testes: `npm test`. Não há dependências para instalar. `tests/auto.test.js` gera uma folha anônima em memória; dados pessoais não integram os testes distribuídos.
+Site estático, sem bibliotecas externas. `auto.js` contém detecção, leitura e geometria oficial; `core.js`, pontuação/PDF; `app.js`, interface; `bundle.js`, código entregue ao navegador. Após alterações: `node build.mjs`. Testes: `npm test`.
